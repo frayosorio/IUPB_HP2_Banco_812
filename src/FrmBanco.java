@@ -1,4 +1,5 @@
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.BorderLayout;
@@ -197,6 +198,7 @@ public class FrmBanco extends JFrame {
 
         DefaultTableModel dtm = new DefaultTableModel(null, encabezadosCuentas);
         tblCuentas.setModel(dtm);
+        tblCuentas.getTableHeader().setReorderingAllowed(false);
 
         // Agregar componentes
         pnlCuentas.add(pnlEditarCuenta);

@@ -7,8 +7,13 @@ public class Credito extends Cuenta {
     private int plazo;
     private double valorRetirado;
 
-    public Credito(String titular, String numero, double saldo) {
-        super(titular, numero, saldo);
+    public Credito(String titular, String numero,
+            double valorPrestado, double tasa, int plazo) {
+        super(titular, numero, 0);
+        this.valorPrestado = valorPrestado;
+        this.tasa = tasa;
+        this.plazo = plazo;
+        this.valorRetirado = 0;
     }
 
     @Override
@@ -23,7 +28,24 @@ public class Credito extends Cuenta {
     }
 
     public double getCuota() {
-        return valorPrestado * Math.pow(1 + tasa, plazo) * tasa / (Math.pow(1 + tasa, plazo) - 1);
+        double t = tasa / 100;
+        return valorPrestado * Math.pow(1 + t, plazo) * t / (Math.pow(1 + t, plazo) - 1);
+    }
+
+    public double getValorPrestado() {
+        return valorPrestado;
+    }
+
+    public double getTasa() {
+        return tasa;
+    }
+
+    public int getPlazo() {
+        return plazo;
+    }
+
+    public double getValorRetirado() {
+        return valorRetirado;
     }
 
 }
