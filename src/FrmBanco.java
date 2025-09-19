@@ -27,6 +27,7 @@ import modelos.Ahorros;
 import modelos.Corriente;
 import modelos.Credito;
 import modelos.Cuenta;
+import modelos.Transaccion;
 
 public class FrmBanco extends JFrame {
 
@@ -43,6 +44,7 @@ public class FrmBanco extends JFrame {
 
     private JLabel lblSaldoInicial, lblSobregiro, lblPlazo;
     private List<Cuenta> cuentas = new ArrayList<>();
+    private List<Transaccion> transacciones = new ArrayList<>();
 
     JTabbedPane tp;
 
@@ -298,6 +300,7 @@ public class FrmBanco extends JFrame {
     private void btnQuitarCuentaClick() {
         if (tblCuentas.getSelectedRow() >= 0) {
             cuentas.remove(tblCuentas.getSelectedRow());
+            cmbCuenta.removeItemAt(tblCuentas.getSelectedRow());
             mostrarCuentas();
         } else {
             JOptionPane.showMessageDialog(null, "Debe seleccionar la cuenta");
@@ -306,22 +309,25 @@ public class FrmBanco extends JFrame {
 
     private void btnGuardarCuentaClick() {
         pnlEditarCuenta.setVisible(false);
+        Cuenta cuenta = null;
         switch (cmbTipoCuenta.getSelectedIndex()) {
             case 0:
-                cuentas.add(new Ahorros(txtTitular.getText(), txtNumero.getText(),
-                        Double.parseDouble(txtSaldoInicial.getText())));
+                cuenta = new Ahorros(txtTitular.getText(), txtNumero.getText(),
+                        Double.parseDouble(txtSaldoInicial.getText()));
                 break;
             case 1:
-                cuentas.add(new Corriente(txtTitular.getText(), txtNumero.getText(),
-                        Double.parseDouble(txtSaldoInicial.getText()), Double.parseDouble(txtSobregiro.getText())));
+                cuenta = new Corriente(txtTitular.getText(), txtNumero.getText(),
+                        Double.parseDouble(txtSaldoInicial.getText()), Double.parseDouble(txtSobregiro.getText()));
                 break;
             case 2:
-                cuentas.add(new Credito(txtTitular.getText(), txtNumero.getText(),
+                cuenta = new Credito(txtTitular.getText(), txtNumero.getText(),
                         Double.parseDouble(txtSaldoInicial.getText()), Double.parseDouble(txtSobregiro.getText()),
-                        Integer.parseInt(txtPlazo.getText())));
+                        Integer.parseInt(txtPlazo.getText()));
 
                 break;
         }
+        cuentas.add(cuenta);
+        cmbCuenta.addItem(cuenta.getNumero() + " " + cuenta.getTitular());
         mostrarCuentas();
     }
 
@@ -338,12 +344,48 @@ public class FrmBanco extends JFrame {
 
     private void btnGuardarTransaccionClick() {
         pnlEditarTransaccion.setVisible(false);
+        double valor = Double.parseDouble(txtValor.getText());
+        if (cmbCuenta.getSelectedIndex() >= 0 &&
+                cmbTipoTransaccion.getSelectedIndex() >= 0 &&
+                valor > 0) {
+            Cuenta c = cuentas.get(cmbCuenta.getSelectedIndex());
+            double saldo = 0;
+            switch (cmbTipoTransaccion.getSelectedIndex()) {
+                case 0:
+                    if (c instanceof Credito) {
+                        Credito cr = (Credito) c;
+                        cr.pagar(valor);
+                        saldo = cr.getValorPrestado() - cr.getSaldo();
+                    } else {
+                        c.consignar(valor);
+                        saldo = c.getSaldo();
+                    }
+
+                    break;
+                case 1:
+                    c.retirar(valor);
+                    if (c instanceof Credito) {
+                        Credito cr = (Credito) c;
+                        saldo = cr.getValorPrestado() - cr.getValorRetirado();
+                    } else {
+                        saldo = c.getSaldo();
+                    }
+                    break;
+            }
+            Transaccion t = new Transaccion(c,
+                    opcionesTransaccion[cmbTipoTransaccion.getSelectedIndex()],
+                    valor, saldo);
+            transacciones.add(t);
+            mostrarTransacciones();
+        } else {
+            JOptionPane.showMessageDialog(null,
+                    "Debe seleccionar la cuenta y el tipo de transacción, asi como un valor positivo de la transacción");
+        }
 
     }
 
     private void btnCancelarTransaccionClick() {
         pnlEditarTransaccion.setVisible(false);
-
     }
 
     private void mostrarCuentas() {
@@ -367,6 +409,22 @@ public class FrmBanco extends JFrame {
         DefaultTableModel dtm = new DefaultTableModel(datos, encabezadosCuentas);
         tblCuentas.setModel(dtm);
 
+    }
+
+    private void mostrarTransacciones() {
+        String[][] datos = new String[transacciones.size()][encabezadosTransacciones.length];
+        int fila = 0;
+        DecimalFormat df = new DecimalFormat("#,##0.00");
+        for (Transaccion t : transacciones) {
+            datos[fila][0] = t.getCuenta().getNumero() + " - " + t.getCuenta().getTitular();
+            datos[fila][1] = t.getTipo();
+            datos[fila][2] = df.format(t.getValor());
+            datos[fila][3] = df.format(t.getSaldo());
+            fila++;
+        }
+
+        DefaultTableModel dtm = new DefaultTableModel(datos, encabezadosTransacciones);
+        tblTransacciones.setModel(dtm);
     }
 
 }
