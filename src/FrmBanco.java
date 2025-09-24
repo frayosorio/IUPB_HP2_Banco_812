@@ -33,7 +33,7 @@ public class FrmBanco extends JFrame {
 
     public String[] encabezadosCuentas = new String[] { "Tipo", "Número", "Titular", "Saldo",
             "Sobregiro", "Valor Prestado", "Tasa", "Plazo", "Cuota" };
-    public String[] encabezadosTransacciones = new String[] { "Cuenta", "Tipo", "Valor", "Saldo" };
+    public String[] encabezadosTransacciones = new String[] { "Cuenta", "Tipo", "Valor", "Saldo", "Estado" };
     private String[] opcionesTransaccion = new String[] { "Depósito", "Retiro" };
 
     private JTable tblCuentas, tblTransacciones;
@@ -350,20 +350,20 @@ public class FrmBanco extends JFrame {
                 valor > 0) {
             Cuenta c = cuentas.get(cmbCuenta.getSelectedIndex());
             double saldo = 0;
+            boolean aceptada = false;
             switch (cmbTipoTransaccion.getSelectedIndex()) {
                 case 0:
                     if (c instanceof Credito) {
                         Credito cr = (Credito) c;
-                        cr.pagar(valor);
+                        aceptada = cr.pagar(valor);
                         saldo = cr.getValorPrestado() - cr.getSaldo();
                     } else {
-                        c.consignar(valor);
+                        aceptada = c.consignar(valor);
                         saldo = c.getSaldo();
                     }
-
                     break;
                 case 1:
-                    c.retirar(valor);
+                    aceptada = c.retirar(valor);
                     if (c instanceof Credito) {
                         Credito cr = (Credito) c;
                         saldo = cr.getValorPrestado() - cr.getValorRetirado();
@@ -374,7 +374,7 @@ public class FrmBanco extends JFrame {
             }
             Transaccion t = new Transaccion(c,
                     opcionesTransaccion[cmbTipoTransaccion.getSelectedIndex()],
-                    valor, saldo);
+                    valor, saldo, !aceptada);
             transacciones.add(t);
             mostrarTransacciones();
         } else {
@@ -420,6 +420,7 @@ public class FrmBanco extends JFrame {
             datos[fila][1] = t.getTipo();
             datos[fila][2] = df.format(t.getValor());
             datos[fila][3] = df.format(t.getSaldo());
+            datos[fila][4] = t.isRechazada() ? "Rechazada" : "Aceptada";
             fila++;
         }
 

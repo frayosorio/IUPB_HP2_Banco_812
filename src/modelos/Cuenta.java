@@ -29,11 +29,13 @@ public abstract class Cuenta {
 
     public abstract boolean retirar(double cantidad);
 
-    public void consignar(double cantidad) {
+    public boolean consignar(double cantidad) {
         if (cantidad > 0) {
             saldo += cantidad;
             System.out.println("Consignación existosa. Nuevo saldo:" + saldo);
+            return true;
         }
+        return false;
     }
 
 }
